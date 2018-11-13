@@ -3,10 +3,10 @@ debug: true
 spring:
   kafka:
     bootstrap-servers: 192.168.0.64:9092
-    consumer:
+    template:
+      default-topic: players
+    producer:
       properties:
         spring.json.type.mapping: player:com.example.spring.batch.kafka.domain.Player
         spring.json.trusted.packages: "*"
-      max-poll-records: 10
-      enable-auto-commit: false
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

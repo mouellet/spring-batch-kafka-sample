@@ -1,27 +1,25 @@
 package com.example.spring.batch.kafka;
 
-import java.util.Collections;
-
-import org.apache.kafka.common.TopicPartition;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.file.FlatFileItemWriter;
-import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
-import org.springframework.batch.item.kafka.KafkaItemReader;
-import org.springframework.batch.item.kafka.builder.KafkaItemReaderBuilder;
+import org.springframework.batch.item.SpELItemKeyMapper;
+import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.kafka.builder.KafkaItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.kafka.core.ConsumerFactory;
 
 import com.example.spring.batch.kafka.domain.Player;
+import com.example.spring.batch.kafka.domain.PlayerFieldSetMapper;
+import org.springframework.kafka.core.KafkaTemplate;
 
 @EnableKafka
 @EnableBatchProcessing
@@ -33,7 +31,7 @@ public class SpringBatchKafkaApplication {
 	}
 
 	@Autowired
-	private ConsumerFactory<String, Player> consumerFactory;
+	private KafkaTemplate<String, Player>  kafkaTemplate;
 
 	@Autowired
 	private JobBuilderFactory jobs;
@@ -48,26 +46,31 @@ public class SpringBatchKafkaApplication {
 
 	@Bean
 	public Step kafkaWriterStep() {
-		return steps.get("kafkaWriterStep").<Player, Player> chunk(10).reader(itemReader()).writer(flatFileItemWriter())
+		return steps.get("kafkaWriterStep")
+				.<Player, Player> chunk(10)
+				.reader(itemReader())
+				.writer(itemWriter())
 				.build();
 	}
 
 	@Bean
-	public KafkaItemReader<String, Player> itemReader() {
-		return new KafkaItemReaderBuilder<String, Player>()
-				.topicPartitions(Collections.singletonList(new TopicPartition("players", 0)))
-				.consumerFactory(consumerFactory).pollTimeout(0L).build();
-	}
-
-	@Bean
-	public FlatFileItemWriter<Player> flatFileItemWriter() {
-		return new FlatFileItemWriterBuilder<Player>()
-				.name("flatFileItemWriter")
-				.resource(new FileSystemResource("processed_players.csv"))
+	public FlatFileItemReader<Player> itemReader() {
+		return new FlatFileItemReaderBuilder<Player>()
+				.saveState(false)
+				.resource(new ClassPathResource("players.csv"))
 				.delimited()
-				.names(new String[] { "id", "lastName", "firstName", "position", "debutYear", "birthYear" })
+				.names(new String[] { "ID", "lastName", "firstName", "position", "debutYear", "birthYear" })
+				.fieldSetMapper(new PlayerFieldSetMapper())
 				.build();
 	}
+
+	 @Bean
+	 public ItemWriter<Player> itemWriter() {
+		return new KafkaItemWriterBuilder<String, Player>()
+				.kafkaTemplate(kafkaTemplate)
+				.itemKeyMapper(new SpELItemKeyMapper<>("id"))
+				.build();
+	 }
 
 	@Bean
 	public ItemWriter<Player> fakeItemWriter() {

@@ -1,0 +1,39 @@
+buildscript {
+	ext {
+		springBootVersion = '2.1.0.RELEASE'
+	}
+	repositories {
+		maven { url 'https://repo.spring.io/libs-snapshot' }
+		maven { url 'https://repo.spring.io/libs-milestone' }
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	maven { url 'https://repo.spring.io/libs-snapshot' }
+	maven { url 'https://repo.spring.io/libs-milestone' }
+	mavenCentral()
+}
+
+ext['spring-batch.version'] = '4.1.0.BUILD-SNAPSHOT'
+
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter-batch')
+	implementation('org.springframework.kafka:spring-kafka')
+	implementation("org.hsqldb:hsqldb")
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	testImplementation('org.springframework.batch:spring-batch-test')
+}

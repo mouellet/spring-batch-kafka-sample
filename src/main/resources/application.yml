@@ -1,6 +1,13 @@
 debug: true
 
 spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.0.64:3306/spring_batch
+    username: spring-batch
+    password: spring-batch
+  batch:
+    initialize-schema: always
   kafka:
     bootstrap-servers: 192.168.0.64:9092
     consumer:
@@ -9,4 +16,6 @@ spring:
         spring.json.trusted.packages: "*"
       max-poll-records: 10
       enable-auto-commit: false
+      auto-offset-reset: earliest
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+

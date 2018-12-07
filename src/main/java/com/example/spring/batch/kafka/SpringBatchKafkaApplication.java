@@ -1,15 +1,21 @@
 package com.example.spring.batch.kafka;
 
+import java.time.Instant;
 import java.util.Collections;
 
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.listener.StepExecutionListenerSupport;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.kafka.builder.KafkaItemReaderBuilder;
+import org.springframework.batch.item.kafka.support.BeginningOffsetsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,6 +24,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.ConsumerFactory;
 
 import com.example.spring.batch.kafka.domain.Player;
+import org.springframework.stereotype.Component;
 
 @EnableKafka
 @EnableBatchProcessing
@@ -39,7 +46,9 @@ public class SpringBatchKafkaApplication {
 
 	@Bean
 	public Job kafkaJob() {
-		return jobs.get("kafkaJob").start(kafkaReaderStep()).build();
+		return jobs.get("kafkaJob")
+				.start(kafkaReaderStep())
+				.build();
 	}
 
 	@Bean
@@ -48,6 +57,7 @@ public class SpringBatchKafkaApplication {
 				.<Player, Player> chunk(10)
 				.reader(itemReader())
 				.writer(fakeItemWriter())
+				.allowStartIfComplete(true)
 				.build();
 	}
 
@@ -55,6 +65,7 @@ public class SpringBatchKafkaApplication {
 	public ItemReader<Player> itemReader() {
 		return new KafkaItemReaderBuilder<String, Player>()
 				.topics(Collections.singletonList("players"))
+				.offsetsProvider(new BeginningOffsetsProvider())
 				.consumerFactory(consumerFactory)
 				.maxItemCount(50)
 				.saveState(true)
@@ -66,5 +77,4 @@ public class SpringBatchKafkaApplication {
 	public ItemWriter<Player> fakeItemWriter() {
 		return items -> items.forEach(System.out::println);
 	}
-
 }

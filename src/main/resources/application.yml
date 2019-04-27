@@ -2,7 +2,7 @@ debug: true
 
 spring:
   kafka:
-    bootstrap-servers: 192.168.0.64:9092
+    bootstrap-servers: localhost:9092
     template:
       default-topic: players
     producer:

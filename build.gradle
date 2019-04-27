@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '2.1.0.RELEASE'
+		springBootVersion = '2.1.4.RELEASE'
 	}
 	repositories {
 		maven { url 'https://repo.spring.io/libs-snapshot' }
@@ -27,7 +27,7 @@ repositories {
 	mavenCentral()
 }
 
-ext['spring-batch.version'] = '4.1.0.BUILD-SNAPSHOT'
+ext['spring-batch.version'] = '4.2.0.BUILD-SNAPSHOT'
 
 
 dependencies {

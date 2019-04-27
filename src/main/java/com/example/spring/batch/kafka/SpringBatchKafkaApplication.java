@@ -16,10 +16,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import com.example.spring.batch.kafka.domain.Player;
 import com.example.spring.batch.kafka.domain.PlayerFieldSetMapper;
-import org.springframework.kafka.core.KafkaTemplate;
 
 @EnableKafka
 @EnableBatchProcessing
@@ -31,7 +31,7 @@ public class SpringBatchKafkaApplication {
 	}
 
 	@Autowired
-	private KafkaTemplate<String, Player>  kafkaTemplate;
+	private KafkaTemplate<String, Player> kafkaTemplate;
 
 	@Autowired
 	private JobBuilderFactory jobs;
@@ -47,7 +47,7 @@ public class SpringBatchKafkaApplication {
 	@Bean
 	public Step kafkaWriterStep() {
 		return steps.get("kafkaWriterStep")
-				.<Player, Player> chunk(10)
+				.<Player, Player>chunk(10)
 				.reader(itemReader())
 				.writer(itemWriter())
 				.build();
@@ -64,13 +64,13 @@ public class SpringBatchKafkaApplication {
 				.build();
 	}
 
-	 @Bean
-	 public ItemWriter<Player> itemWriter() {
+	@Bean
+	public ItemWriter<Player> itemWriter() {
 		return new KafkaItemWriterBuilder<String, Player>()
 				.kafkaTemplate(kafkaTemplate)
 				.itemKeyMapper(new SpELItemKeyMapper<>("id"))
 				.build();
-	 }
+	}
 
 	@Bean
 	public ItemWriter<Player> fakeItemWriter() {
